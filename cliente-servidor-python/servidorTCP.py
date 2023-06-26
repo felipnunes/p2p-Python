@@ -10,10 +10,9 @@ class Client:
 def HandleJoinRequest(client, request):
     # Extrai as informações da requisição JOIN do cliente
     join_info = request.split(";")
-    file_names = join_info[1]
-
+    files = join_info[1:]
     # Armazena as strings de arquivos do cliente no objeto client
-    client.fileStrings = file_names.split(",")
+    client.fileStrings = files
 
     # Realiza a lógica de negócio para verificar e aprovar a conexão do cliente
     # Exemplo: sempre aprova a conexão
@@ -22,16 +21,26 @@ def HandleJoinRequest(client, request):
     # Envia a resposta ao cliente
     client.client_socket.send(response.encode())
 
-def HandleSearchRequest(clientList, request):
-    fileToSearch = request  # A requisição é o próprio nome do arquivo
+def HandleSearchRequest(client, clientList, request):
+    fileToSearch = request.split(";")[1]  # A requisição é o próprio nome do arquivo
     ownerPeers = SearchForFile(fileToSearch, clientList)
     ownerPeersIPs = []
-
-    if ownerPeers != []:
+    response = ""
+    if ownerPeers:
         for peer in ownerPeers:
             ownerPeersIPs.append(peer.client_ip)
+        print("Peers que possuem o arquivo:", ownerPeersIPs)
+        response = ";".join(str(ip) for ip in ownerPeersIPs)  # Converte cada IP em uma string antes de juntá-los
     else:
-        print("O arquivo não foi encontrado em nenhum peer e ownerPeers = ", ownerPeers)
+        print("O arquivo não foi encontrado em nenhum peer. OwnerPeers =", ownerPeers)
+
+    # Envia a resposta ao cliente
+    client.client_socket.send(response.encode())
+
+
+
+
+
 
 def GetConnectedIPs(clientList):
     connected_ips = []
@@ -67,7 +76,7 @@ def HandleClient(client, clientList, bufferSize):
             print("IPs dos clientes conectados:", GetConnectedIPs(clientList))
 
         elif request.startswith("SEARCH"):
-            HandleSearchRequest(clientList, request)
+            HandleSearchRequest(client, clientList, request)
 
         else:
             pass  # Inserir outras requisições aqui
@@ -99,7 +108,7 @@ def RunServer():
             client_thread.start()
 
     accept_thread = threading.Thread(target = AcceptClients)
-    accept_thread.start()
+    accept_thread.start() # Fica aqui infinitamente
 
     # Aguarda a thread de aceitação de clientes finalizar (isso não deve acontecer a menos que ocorra algum erro)
     accept_thread.join()
