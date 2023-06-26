@@ -37,6 +37,8 @@ def StartConnection():
 
             if option == "1":
                 search_query = input("Digite os arquivos que deseja buscar (separados por ponto e vírgula): ")
+
+                # Monta a requisição SEARCH com a consulta do cliente
                 search_request = f"SEARCH;{search_query}"
 
                 # Envia a requisição SEARCH ao servidor
@@ -44,6 +46,8 @@ def StartConnection():
 
                 # Recebe a resposta do servidor
                 search_results = TCPClientSocket.recv(bufferSize).decode()
+
+                # Imprime os resultados da busca
                 print("Resultados da busca:", search_results)
 
             elif option == "2":
