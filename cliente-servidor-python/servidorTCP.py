@@ -1,16 +1,30 @@
 import socket
 import threading
 
+
 class Client:
     def __init__(self, client_socket, client_ip):
         self.client_socket = client_socket
         self.client_ip = client_ip
         self.fileStrings = []
 
+def DeleteClientFromClientList(clientToBeDeleted, clientList):
+    for client in clientList:
+        #print("String compare = ", client, " ", clientToBeDeleted)
+        if client == clientToBeDeleted:
+            clientList
+
 def HandleJoinRequest(client, request):
+
     # Extrai as informações da requisição JOIN do cliente
-    join_info = request.split(";")
-    files = join_info[1:]
+    join_info = request
+    
+    join_info = join_info.split(";") #Remove o JOIN de request
+    
+
+    files = eval(join_info[1])
+
+    print("files = ",files[0])
     # Armazena as strings de arquivos do cliente no objeto client
     client.fileStrings = files
 
@@ -38,10 +52,6 @@ def HandleSearchRequest(client, clientList, request):
     client.client_socket.send(response.encode())
 
 
-
-
-
-
 def GetConnectedIPs(clientList):
     connected_ips = []
     for client in clientList:
@@ -52,7 +62,7 @@ def GetConnectedIPs(clientList):
 def SearchForFile(fileToSearch, clientList):
     ownerPeersList = []
     for client in clientList:
-        for file in client.fileStrings:
+        for file in client.fileStrings:    
             if file == fileToSearch:
                  ownerPeersList.append(client)
     return ownerPeersList
@@ -67,6 +77,7 @@ def HandleClient(client, clientList, bufferSize):
         if not request:
             # Se não houver mais dados recebidos, o cliente encerrou a conexão
             print("Conexão encerrada com o cliente:", client.client_ip)
+            DeleteClientFromClientList(client, clientList)
             break
 
         # Verifica o tipo de requisição

@@ -1,8 +1,28 @@
 import socket
+import os
+import random
 
 ServerAddress = '127.0.0.1'
 Port = 5000
 bufferSize = 1024
+
+def getFilesInDirectory(directory):
+    fileNames = [filename for filename in os.listdir(directory) if os.path.isfile(os.path.join(directory, filename))]
+    return fileNames
+
+def ChoseOwnerPeer(search_results):
+    random_index = random.randint(0, len(search_results) - 1) #Escolhe peer aleatorio dentre a lista de peers que possuem o arquivo
+    return search_results[random_index]
+
+
+def MakeDownloadRequest(client, fileToBeDownloaded, selectedOwnerPeer):
+    downloadRequest = f"DOWNLOAD;{fileToBeDownloaded}"
+    client.send(downloadRequest.encode())
+    response = client.recv(bufferSize).decode()
+
+    
+
+
 
 def StartConnection():
     # Cria um socket TCP
@@ -12,11 +32,11 @@ def StartConnection():
     TCPClientSocket.connect((ServerAddress, Port))
 
     # Informações do peer que está se juntando à rede
-    peerID = "Peer1"
-    fileNames = "file1.txt;file2.txt;file3.txt"
+    fileNames = getFilesInDirectory("Files")
 
     # Monta a requisição JOIN com os dados do cliente
-    join_request = f"JOIN;{peerID};{fileNames}"
+    print(fileNames)
+    join_request = f"JOIN;{fileNames}"
 
     # Envia a requisição JOIN ao servidor
     TCPClientSocket.send(join_request.encode())
@@ -49,6 +69,21 @@ def StartConnection():
 
                 # Imprime os resultados da busca
                 print("Resultados da busca:", search_results)
+
+                #Escolhe o peer ao qual pedirá o arquivo
+                selectedOwnerPeer = ChoseOwnerPeer()
+
+                #opções de ações
+                print("Opções:")
+                print("Solicitar download do arquivo?")
+                print("1. Sim")
+                print("2. Não")
+                
+                option = input("Digite o número da opção desejada: ")
+                if(option == "1"):   
+                    MakeDownloadRequest(TCPClientSocket, search_query, selectedOwnerPeer)
+                
+
 
             elif option == "2":
                 break
